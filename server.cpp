@@ -61,7 +61,7 @@ static void do_epoll(int listenfd)
 	int epollfd;
 	struct epoll_event events[EPOLLEVENTS];
 	int ret;
-	char buf[MAXSIZE];
+	char buf[MAXSIZE];//buffer for read and write stream
 	memset(buf,0,MAXSIZE);
 	epollfd = epoll_create(FDSIZE);
 	add_event(epollfd,listenfd,EPOLLIN);
@@ -71,11 +71,11 @@ static void do_epoll(int listenfd)
 	}
 	close(epollfd);
 }
-static void handle_events(int epollfd,struct epoll_event *events,int num,int listenfd,char* buf)
+static void handle_events(int epollfd,struct epoll_event *maxevents,int num,int listenfd,char* buf)
 {
 	int i;
 	int fd;
-	for(i = 0;i < num;i++){
+	for(i = 0;i < maxevents;i++){
 		fd = events[i].data.fd;
 		//根据描述符的类型和事件类型进行处理
 		if( (fd == listenfd) && (events[i].events & EPOLLIN) )
