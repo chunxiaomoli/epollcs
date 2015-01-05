@@ -9,9 +9,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAXSIZE 1014
+#define MAXSIZE 1024
 #define IPADDRESS "127.0.0.1"
-#define SERV_PORT 8787
+#define SERV_PORT 9999
 #define FDSIZE 1024
 #define EPOLLEVENTS 20
 
@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	servaddr.sin_port = htons(SERV_PORT);
 	inet_pton(AF_INET,IPADDRESS,&servaddr.sin_addr);
 	sockfd = socket(AF_INET, SOCK_STREAM,0);
-	if( connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr))== -1){
+	if( connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr) )== -1){
 		perror("connect error:");
 		return -1;
 	}
@@ -71,6 +71,7 @@ static void handle_events(int epollfd,struct epoll_event* events,int maxevents,i
 		else if(events[i].events & EPOLLOUT)
 			do_write(epollfd,fd,sockfd,buf);
 	}
+}
 
 static void do_read(int epollfd,int fd, int sockfd, char* buf)
 {
@@ -115,19 +116,19 @@ static void add_event(int epollfd, int fd, int event)
 	struct epoll_event ev;
 	ev.events = event;
 	ev.data.fd = fd;
-	epoll_ctl(epollfd, EPOLL_CTL_ADD,&ev);
+	epoll_ctl(epollfd, EPOLL_CTL_ADD,fd,&ev);
 }
 static void delete_event(int epollfd, int fd, int event)
 {
 	struct epoll_event ev;
 	ev.events = event;
 	ev.data.fd = fd;
-	epoll_ctl(epollfd, EPOLL_CTL_DEL,&ev);
+	epoll_ctl(epollfd, EPOLL_CTL_DEL,fd,&ev);
 }
 static void modify_event(int epollfd, int fd, int event)
 {
 	struct epoll_event ev;
 	ev.events = event;
 	ev.data.fd = fd;
-	epoll_ctl(epollfd, EPOLL_CTL_MOD,&ev);
+	epoll_ctl(epollfd, EPOLL_CTL_MOD,fd,&ev);
 }

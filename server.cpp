@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #define IPADDRESS "127.0.0.1"
-#define PORT  8787
+#define PORT  9999
 #define MAXSIZE 1024
 #define LISTENQ 5
 #define FDSIZE 1000
@@ -45,7 +45,7 @@ static int socket_bind(const char* ip,int port)
 		perror("socket error:");
 		exit(1);
 	}
-	bzero(&servaddr,sizeof(servaddr));
+	bzero(&servaddr,sizeof(struct sockaddr_in));
 	servaddr.sin_family = AF_INET;
 	inet_pton(AF_INET,ip,&servaddr.sin_addr);
 	servaddr.sin_port = htons(port);
@@ -71,7 +71,7 @@ static void do_epoll(int listenfd)
 	}
 	close(epollfd);
 }
-static void handle_events(int epollfd,struct epoll_event *maxevents,int num,int listenfd,char* buf)
+static void handle_events(int epollfd,struct epoll_event *events,int maxevents,int listenfd,char* buf)
 {
 	int i;
 	int fd;
@@ -79,7 +79,7 @@ static void handle_events(int epollfd,struct epoll_event *maxevents,int num,int 
 		fd = events[i].data.fd;
 		//根据描述符的类型和事件类型进行处理
 		if( (fd == listenfd) && (events[i].events & EPOLLIN) )
-			handle_accept(epoll,listenfd);
+			handle_accept(epollfd,listenfd);
 		else if( events[i].events & EPOLLIN)
 			do_read(epollfd,fd,buf);
 		else if( events[i].events & EPOLLOUT)
@@ -90,7 +90,7 @@ static void handle_accept(int epollfd,int listenfd)
 {
 	int clifd;
 	struct sockaddr_in cliaddr;
-	socklen_t cliaddr_len;
+	socklen_t cliaddr_len=sizeof(struct sockaddr_in);
 	clifd = accept(listenfd,(struct sockaddr*)&cliaddr,&cliaddr_len);
 	if( clifd == -1 )
 		perror("accept error:");
